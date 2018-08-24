@@ -32,25 +32,25 @@ namespace Sitecore.HabitatHome.Feature.Customers.Controllers
         {
             try
             {
-                Assert.ArgumentNotNull((object)inputModel, "RegistrationUserInputModel");
-                RegistrationBaseJsonResult registrationBaseJsonResult = new RegistrationBaseJsonResult(this.StorefrontContext, this.SitecoreContext);
-                this.ValidateModel((BaseJsonResult)registrationBaseJsonResult);
+                Assert.ArgumentNotNull(inputModel, "RegistrationUserInputModel");
+                RegistrationBaseJsonResult registrationBaseJsonResult = new RegistrationBaseJsonResult(StorefrontContext, SitecoreContext);
+                this.ValidateModel(registrationBaseJsonResult);
                 if (registrationBaseJsonResult.HasErrors)
-                    return this.Json((object)registrationBaseJsonResult, JsonRequestBehavior.AllowGet);
-                string userId = this.VisitorContext.UserId;
-                ManagerResponse<CreateUserResult, CommerceUser> managerResponse = this.AccountManager.RegisterUser(this.StorefrontContext, this.UpdateUserName(inputModel.UserName), inputModel.Password, inputModel.UserName);
+                    return Json(registrationBaseJsonResult, JsonRequestBehavior.AllowGet);
+                string userId = VisitorContext.UserId;
+                ManagerResponse<CreateUserResult, CommerceUser> managerResponse = AccountManager.RegisterUser(StorefrontContext, UpdateUserName(inputModel.UserName), inputModel.Password, inputModel.UserName);
                 if (managerResponse.ServiceProviderResult.Success && managerResponse.Result != null)
                 {
                     registrationBaseJsonResult.Initialize(managerResponse.Result);
-                    this.AccountManager.Login(this.StorefrontContext, this.VisitorContext, managerResponse.Result.UserName, inputModel.Password, false);
+                    AccountManager.Login(StorefrontContext, VisitorContext, managerResponse.Result.UserName, inputModel.Password, false);
                 }
                 else
-                    registrationBaseJsonResult.SetErrors((ServiceProviderResult)managerResponse.ServiceProviderResult);
-                return this.Json((object)registrationBaseJsonResult);
+                    registrationBaseJsonResult.SetErrors(managerResponse.ServiceProviderResult);
+                return Json(registrationBaseJsonResult);
             }
             catch (Exception ex)
             {
-                return this.Json((object)new BaseJsonResult(nameof(Registration), ex, this.StorefrontContext, this.SitecoreContext), JsonRequestBehavior.AllowGet);
+                return Json(new BaseJsonResult(nameof(Registration), ex, StorefrontContext, SitecoreContext), JsonRequestBehavior.AllowGet);
             }
         }
         [AllowAnonymous]
