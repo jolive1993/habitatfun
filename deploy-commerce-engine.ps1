@@ -1,13 +1,13 @@
 Param(
 
-    [string]$siteName = "habitathome.dev.local",
-    [string]$certificateName = "habitathome.dev.local.xConnect.Client",
+    [string]$siteName = "SitecoreCommerce.sc",
+    [string]$certificateName = "storefront.local",
     [string]$engineHostName = "localhost",
     [string]$identityServerHost = "localhost:5050",
     [string]$webRoot = "C:\inetpub\wwwroot",
     [string[]] $engines = @("Authoring", "Minions", "Ops", "Shops"),
-    [string]$engineSuffix = "habitathome",
-    [string]$CommerceOpsPort = "5000",
+    [string]$engineSuffix = "Sc9",
+    [string]$CommerceOpsPort = "5015",
     [string]$adminUser = "admin",
     [string]$adminPassword = "b",
     [string]$publishFolder = (Join-Path $PWD "publishTemp"),
@@ -139,7 +139,7 @@ Function CleanEnvironment {
             environment = $env
         }
 
-        $result = Invoke-RestMethod $initializeUrl -TimeoutSec 1200 -Method Post -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json"
+        $result = Invoke-RestMethod $initializeUrl -TimeoutSec 1200000 -Method Post -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json"
         if ($result.ResponseCode -eq "Ok") {
             Write-Host "Cleaning for $($env) completed successfully" -ForegroundColor Green
         }
