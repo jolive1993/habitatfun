@@ -36,8 +36,4 @@
     <Reference Include="System.Transactions" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Foundation\PluginEnhancements\engine\Sitecore.HabitatHome.Foundation.PluginEnhancements.Engine.csproj" />
-  </ItemGroup>
  </Project>

@@ -16,13 +16,14 @@ using Assert = Sitecore.Diagnostics.Assert;
 
 namespace Sitecore.HabitatHome.Foundation.Customers.Managers
 {
-    public class AccountManager : Commerce.XA.Foundation.Connect.Managers.AccountManager
+    public class AccountManager : Commerce.XA.Foundation.Connect.Managers.AccountManager, Interfaces.IAccountManager
     {
         public AccountManager(IConnectServiceProvider connectServiceProvider, ICartManager cartManager, IStorefrontContext storefrontContext, IModelProvider modelProvider) : base(connectServiceProvider, cartManager, storefrontContext, modelProvider)
         {
         }
 
-        public ManagerResponse<CreateUserResult, CommerceUser> RegisterUser(IStorefrontContext storefrontContext, string userName, string password, string email, string secondaryEmail)
+        public ManagerResponse<CreateUserResult, CommerceUser> RegisterUserCustomer(IStorefrontContext storefrontContext, string userName, string password,
+            string email, string secondaryEmail)
         {
             Assert.ArgumentNotNull((object)storefrontContext, nameof(storefrontContext));
             Assert.ArgumentNotNullOrEmpty(userName, nameof(userName));
@@ -30,10 +31,7 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
             CreateUserResult createUserResult1;
             try
             {
-                var createUserRequest = new CreateUserRequest(userName, password, email,
-                    storefrontContext.CurrentStorefront.ShopName);
-                createUserRequest.Properties.Add(new PropertyItem("Secondary Email", secondaryEmail));
-                createUserResult1 = this.CustomerServiceProvider.CreateUser(createUserRequest);
+                createUserResult1 = this.CustomerServiceProvider.CreateUser(new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName));
                 if (!createUserResult1.Success)
                     Helpers.LogSystemMessages((IEnumerable<SystemMessage>)createUserResult1.SystemMessages, (object)createUserResult1);
                 else if (createUserResult1.Success)

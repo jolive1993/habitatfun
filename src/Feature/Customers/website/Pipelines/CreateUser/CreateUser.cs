@@ -3,14 +3,16 @@ using Sitecore.Commerce.Entities;
 using Sitecore.Commerce.Entities.Customers;
 using Sitecore.Commerce.EntityViews;
 using Sitecore.Commerce.Pipelines;
-using Sitecore.Commerce.Plugin.Customers;
 using Sitecore.Commerce.Services;
 using Sitecore.Commerce.Services.Customers;
 using Sitecore.Diagnostics;
 using System;
-using System.ComponentModel;
 using System.Linq;
+using Sitecore.Commerce;
 using Sitecore.Commerce.Engine.Connect.Pipelines;
+using Sitecore.Commerce.Plugin.Customers;
+using Assert = Sitecore.Diagnostics.Assert;
+using Container = Sitecore.Commerce.Engine.Container;
 
 namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
 {
@@ -21,28 +23,29 @@ namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
             this.EntityFactory = entityFactory;
         }
 
-        public IEntityFactory EntityFactory { get; private set; }
+        public IEntityFactory EntityFactory { get; }
 
         public override void Process(ServicePipelineArgs args)
         {
-            CreateUserRequest request = (CreateUserRequest)args.Request;
-            CreateUserResult result = (CreateUserResult) args.Result;
-            Assert.IsNotNull(request.UserName, "request.UserName");
-            Assert.IsNotNull(request.Password, "request.Password");
+            CreateUserRequest request;
+            CreateUserResult result;
+            ValidateArguments<CreateUserRequest, CreateUserResult>(args, out request, out result);
+            Assert.IsNotNull((object)request.UserName, "request.UserName");
+            Assert.IsNotNull((object)request.Password, "request.Password");
             Container container = this.GetContainer(request.Shop.Name, string.Empty, "", "", args.Request.CurrencyCode, new DateTime?());
             CommerceUser commerceUser1 = result.CommerceUser;
             if (commerceUser1 != null && commerceUser1.UserName.Equals(request.UserName, StringComparison.OrdinalIgnoreCase))
             {
                 string entityId = "Entity-Customer-" + request.UserName;
                 ServiceProviderResult currentResult = new ServiceProviderResult();
-                var entityView = this.GetEntityView(container, entityId, string.Empty, "Details", string.Empty, currentResult);
+                EntityView entityView = this.GetEntityView(container, entityId, string.Empty, "Details", string.Empty, currentResult);
                 if (currentResult.Success && !string.IsNullOrEmpty(entityView.EntityId))
                 {
                     base.Process(args);
                     return;
                 }
             }
-            var entityView1 = this.GetEntityView(container, string.Empty, string.Empty, "Details", "AddCustomer", (ServiceProviderResult)result);
+            EntityView entityView1 = this.GetEntityView(container, string.Empty, string.Empty, "Details", "AddCustomer", (ServiceProviderResult)result);
             if (!result.Success)
                 return;
             entityView1.Properties.FirstOrDefault<ViewProperty>((Func<ViewProperty, bool>)(p => p.Name.Equals("Domain"))).Value = request.UserName.Split('\\')[0];
@@ -56,7 +59,7 @@ namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
                 CommerceUser commerceUser2 = this.EntityFactory.Create<CommerceUser>("CommerceUser");
                 commerceUser2.Email = request.Email;
                 commerceUser2.UserName = request.UserName;
-                commerceUser2.ExternalId = commerceCommand.Models.OfType<CustomerAdded>().FirstOrDefault<CustomerAdded>().CustomerId;
+                commerceUser2.ExternalId = commerceCommand.Models.OfType<CustomerAdded>().FirstOrDefault<CustomerAdded>()?.CustomerId;
                 result.CommerceUser = commerceUser2;
                 request.Properties.Add(new PropertyItem()
                 {
@@ -65,6 +68,17 @@ namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
                 });
             }
             base.Process(args);
+        }
+        internal static void ValidateArguments<TRequest, TResult>(ServicePipelineArgs args, out TRequest request, out TResult result) where TRequest : ServiceProviderRequest where TResult : ServiceProviderResult
+        {
+            Assert.ArgumentNotNull(args, nameof(args));
+            Assert.ArgumentNotNull(args.Request, "args.Request");
+            Assert.ArgumentNotNull(args.Request.RequestContext, "args.Request.RequestContext");
+            Assert.ArgumentNotNull(args.Result, "args.Result");
+            request = args.Request as TRequest;
+            result = args.Result as TResult;
+            Assert.IsNotNull(request, "The parameter args.Request was not of the expected type.  Expected {0}.  Actual {1}.", typeof(TRequest).Name, args.Request.GetType().Name);
+            Assert.IsNotNull(result, "The parameter args.Result was not of the expected type.  Expected {0}.  Actual {1}.", typeof(TResult).Name, args.Result.GetType().Name);
         }
     }
 }
