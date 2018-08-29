@@ -20,7 +20,7 @@ namespace Sitecore.HabitatHome.Feature.Customers.Controllers
 {
     public class AccountController : Commerce.XA.Feature.Account.Controllers.AccountController
     {
-        private Sitecore.HabitatHome.Foundation.Customers.Interfaces.IAccountManager CustomAccountManager { get; set; }
+        private Sitecore.HabitatHome.Foundation.Customers.Interfaces.IAccountManager CustomAccountManager { get; }
         public AccountController(ILoginRepository loginRepository, IRegistrationRepository registrationRepository, IForgotPasswordRepository forgotPasswordRepository, IChangePasswordRepository changePasswordRepository, Sitecore.HabitatHome.Foundation.Customers.Interfaces.IAccountManager accountManager, IStorefrontContext storefrontContext, IVisitorContext visitorContext, IModelProvider modelProvider, IContext sitecoreContext) : base(loginRepository, registrationRepository, forgotPasswordRepository, changePasswordRepository, accountManager, storefrontContext, visitorContext, modelProvider, sitecoreContext)
         {
             this.CustomAccountManager = accountManager;
@@ -36,11 +36,13 @@ namespace Sitecore.HabitatHome.Feature.Customers.Controllers
             {
                 Assert.ArgumentNotNull(inputModel, "RegistrationUserInputModel");
                 RegistrationBaseJsonResult registrationBaseJsonResult = new RegistrationBaseJsonResult(StorefrontContext, SitecoreContext);
-                this.ValidateModel(registrationBaseJsonResult);
+                ValidateModel(registrationBaseJsonResult);
                 if (registrationBaseJsonResult.HasErrors)
+                {
                     return Json(registrationBaseJsonResult, JsonRequestBehavior.AllowGet);
-                string userId = VisitorContext.UserId;
-                ManagerResponse<CreateUserResult, CommerceUser> managerResponse = CustomAccountManager.RegisterUserCustomer(this.StorefrontContext, this.UpdateUserName(inputModel.UserName), inputModel.Password, inputModel.UserName, inputModel.SecondaryEmail);
+                }
+
+                ManagerResponse<CreateUserResult, CommerceUser> managerResponse = CustomAccountManager.RegisterUserCustomer(StorefrontContext, UpdateUserName(inputModel.UserName), inputModel.Password, inputModel.UserName, inputModel.SecondaryEmail);
                 if (managerResponse.ServiceProviderResult.Success && managerResponse.Result != null)
                 {
                     registrationBaseJsonResult.Initialize(managerResponse.Result);

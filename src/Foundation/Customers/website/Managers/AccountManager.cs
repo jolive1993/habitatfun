@@ -25,15 +25,17 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
         public ManagerResponse<CreateUserResult, CommerceUser> RegisterUserCustomer(IStorefrontContext storefrontContext, string userName, string password,
             string email, string secondaryEmail)
         {
-            Assert.ArgumentNotNull((object)storefrontContext, nameof(storefrontContext));
+            Assert.ArgumentNotNull(storefrontContext, nameof(storefrontContext));
             Assert.ArgumentNotNullOrEmpty(userName, nameof(userName));
             Assert.ArgumentNotNullOrEmpty(password, nameof(password));
             CreateUserResult createUserResult1;
             try
             {
-                createUserResult1 = this.CustomerServiceProvider.CreateUser(new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName));
+                createUserResult1 = CustomerServiceProvider.CreateUser(new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName));
                 if (!createUserResult1.Success)
-                    Helpers.LogSystemMessages((IEnumerable<SystemMessage>)createUserResult1.SystemMessages, (object)createUserResult1);
+                {
+                    Helpers.LogSystemMessages(createUserResult1.SystemMessages, createUserResult1);
+                }
                 else if (createUserResult1.Success)
                 {
                     if (createUserResult1.CommerceUser == null)
@@ -43,7 +45,7 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
                             createUserResult1.Success = false;
                             createUserResult1.SystemMessages.Add(new SystemMessage()
                             {
-                                Message = storefrontContext.GetSystemMessage("User Already Exists", true)
+                                Message = storefrontContext.GetSystemMessage("User Already Exists")
                             });
                         }
                     }
@@ -51,22 +53,20 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
             }
             catch (MembershipCreateUserException ex)
             {
-                CreateUserResult createUserResult2 = new CreateUserResult();
-                createUserResult2.Success = false;
+                CreateUserResult createUserResult2 = new CreateUserResult {Success = false};
                 createUserResult1 = createUserResult2;
                 createUserResult1.SystemMessages.Add(new SystemMessage()
                 {
-                    Message = this.ErrorCodeToString(storefrontContext, ex.StatusCode)
+                    Message = ErrorCodeToString(storefrontContext, ex.StatusCode)
                 });
             }
             catch (Exception ex)
             {
-                CreateUserResult createUserResult2 = new CreateUserResult();
-                createUserResult2.Success = false;
+                CreateUserResult createUserResult2 = new CreateUserResult {Success = false};
                 createUserResult1 = createUserResult2;
                 createUserResult1.SystemMessages.Add(new SystemMessage()
                 {
-                    Message = storefrontContext.GetSystemMessage("Unknown Membership Provider Error", true)
+                    Message = storefrontContext.GetSystemMessage("Unknown Membership Provider Error")
                 });
             }
             CreateUserResult serviceProviderResult = createUserResult1;

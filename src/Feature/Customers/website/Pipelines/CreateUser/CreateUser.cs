@@ -27,11 +27,9 @@ namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
 
         public override void Process(ServicePipelineArgs args)
         {
-            CreateUserRequest request;
-            CreateUserResult result;
-            ValidateArguments<CreateUserRequest, CreateUserResult>(args, out request, out result);
-            Assert.IsNotNull((object)request.UserName, "request.UserName");
-            Assert.IsNotNull((object)request.Password, "request.Password");
+            ValidateArguments<CreateUserRequest, CreateUserResult>(args, out var request, out var result);
+            Assert.IsNotNull(request.UserName, "request.UserName");
+            Assert.IsNotNull(request.Password, "request.Password");
             Container container = this.GetContainer(request.Shop.Name, string.Empty, "", "", args.Request.CurrencyCode, new DateTime?());
             CommerceUser commerceUser1 = result.CommerceUser;
             if (commerceUser1 != null && commerceUser1.UserName.Equals(request.UserName, StringComparison.OrdinalIgnoreCase))
@@ -45,21 +43,24 @@ namespace Sitecore.HabitatHome.Feature.Customers.Pipelines.CreateUser
                     return;
                 }
             }
-            EntityView entityView1 = this.GetEntityView(container, string.Empty, string.Empty, "Details", "AddCustomer", (ServiceProviderResult)result);
+            EntityView entityView1 = this.GetEntityView(container, string.Empty, string.Empty, "Details", "AddCustomer", result);
             if (!result.Success)
                 return;
-            entityView1.Properties.FirstOrDefault<ViewProperty>((Func<ViewProperty, bool>)(p => p.Name.Equals("Domain"))).Value = request.UserName.Split('\\')[0];
-            entityView1.Properties.FirstOrDefault<ViewProperty>((Func<ViewProperty, bool>)(p => p.Name.Equals("LoginName"))).Value = request.UserName.Split('\\')[1];
-            entityView1.Properties.FirstOrDefault<ViewProperty>((Func<ViewProperty, bool>)(p => p.Name.Equals("AccountStatus"))).Value = "ActiveAccount";
+            entityView1.Properties.FirstOrDefault(p => p.Name.Equals("Domain")).Value = request.UserName.Split('\\')[0];
+            entityView1.Properties.FirstOrDefault(p => p.Name.Equals("LoginName")).Value = request.UserName.Split('\\')[1];
+            entityView1.Properties.FirstOrDefault(p => p.Name.Equals("AccountStatus")).Value = "ActiveAccount";
             if (!string.IsNullOrEmpty(request.Email))
-                entityView1.Properties.FirstOrDefault<ViewProperty>((Func<ViewProperty, bool>)(p => p.Name.Equals("Email"))).Value = request.Email;
-            CommerceCommand commerceCommand = this.DoAction(container, entityView1, (ServiceProviderResult)result);
+            {
+                entityView1.Properties.FirstOrDefault(p => p.Name.Equals("Email")).Value = request.Email;
+            }
+
+            CommerceCommand commerceCommand = this.DoAction(container, entityView1, result);
             if (commerceCommand != null && commerceCommand.ResponseCode.Equals("ok", StringComparison.OrdinalIgnoreCase))
             {
                 CommerceUser commerceUser2 = this.EntityFactory.Create<CommerceUser>("CommerceUser");
                 commerceUser2.Email = request.Email;
                 commerceUser2.UserName = request.UserName;
-                commerceUser2.ExternalId = commerceCommand.Models.OfType<CustomerAdded>().FirstOrDefault<CustomerAdded>()?.CustomerId;
+                commerceUser2.ExternalId = commerceCommand.Models.OfType<CustomerAdded>().FirstOrDefault()?.CustomerId;
                 result.CommerceUser = commerceUser2;
                 request.Properties.Add(new PropertyItem()
                 {
