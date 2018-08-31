@@ -21,7 +21,6 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
         public AccountManager(IConnectServiceProvider connectServiceProvider, ICartManager cartManager, IStorefrontContext storefrontContext, IModelProvider modelProvider) : base(connectServiceProvider, cartManager, storefrontContext, modelProvider)
         {
         }
-
         public ManagerResponse<CreateUserResult, CommerceUser> RegisterUserCustomer(IStorefrontContext storefrontContext, string userName, string password,
             string email, string secondaryEmail)
         {
@@ -31,7 +30,10 @@ namespace Sitecore.HabitatHome.Foundation.Customers.Managers
             CreateUserResult createUserResult1;
             try
             {
-                createUserResult1 = CustomerServiceProvider.CreateUser(new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName));
+                var createUserRequest = new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName);
+                createUserRequest.Properties.Add("SecondEmail", secondaryEmail);
+                createUserResult1 = CustomerServiceProvider.CreateUser(createUserRequest);
+                //createUserResult1 = CustomerServiceProvider.CreateUser(new CreateUserRequest(userName, password, email, storefrontContext.CurrentStorefront.ShopName));
                 if (!createUserResult1.Success)
                 {
                     Helpers.LogSystemMessages(createUserResult1.SystemMessages, createUserResult1);

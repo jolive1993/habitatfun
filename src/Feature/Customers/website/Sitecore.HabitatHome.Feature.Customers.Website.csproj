@@ -103,7 +103,9 @@
   <ItemGroup>
     <Content Include="App_Config\Include\Feature\Commerce\Feature.Customers.config" />
     <Content Include="App_Config\Include\Feature\Commerce\Sitecore.Commerce.XA.Feature.Account.config" />
-    <Content Include="App_Config\Include\Y.Commerce.Engine\Sitecore.Commerce.Engine.Connectors.Customers.config" />
+    <Content Include="App_Config\Include\Y.Commerce.Engine\Sitecore.Commerce.Engine.Connectors.Customers.config">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="App_Config\Security\Domains.config.xdt" />
     <Content Include="Views\Commerce\Registration.cshtml" />
     <None Include="Web.Debug.config">
@@ -124,6 +126,7 @@
     <Compile Include="Models\RegistrationUserRenderingModelCustom.cs" />
     <Compile Include="Pipelines\CreateUser\CreateUser.cs" />
     <Compile Include="Pipelines\SignIn\RegisterCommerceCustomer.cs" />
+    <Compile Include="Pipelines\UpdateUser\UpdateUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
